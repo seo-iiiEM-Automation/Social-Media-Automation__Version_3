@@ -89,5 +89,5 @@ def host_image(image_bytes: bytes, filename: str = None) -> str:
         try:
             return upload_via_facebook(image_bytes)
         except Exception:
-            pass  # fall through to catbox
+            pass  # fall through to catbox new One
     return upload_to_catbox(image_bytes, filename)
