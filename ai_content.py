@@ -42,21 +42,24 @@ def generate_caption(topic: str, tone: str = "engaging", include_hashtags: bool 
     return response.choices[0].message.content.strip()
 
 
-def generate_image(prompt: str, size: str = "1024x1024") -> str:
-    """Generate an image with DALL-E and return a public URL.
+def generate_image(prompt: str, size: str = "1024x1024") -> bytes:
+    """Generate an image with gpt-image-2 and return the raw PNG bytes.
 
-    Note: the returned URL is hosted by OpenAI and expires after ~2 hours,
-    but it's publicly reachable in that window, which is enough time for
-    Instagram/Facebook's Graph API to fetch it when creating a media container.
-    For scheduled posts more than ~1 hour out, download and re-host the image
-    yourself (see README) so the link doesn't expire before publish time.
+    Unlike the old DALL-E 3 endpoint (retired by OpenAI in May 2026),
+    gpt-image-2 returns base64-encoded image data rather than a hosted URL,
+    so there's no temporary link to worry about expiring — but it also means
+    *we* have to host the bytes somewhere Instagram/Facebook's Graph API can
+    fetch from, since their APIs require a public image URL. See
+    `image_host.py` for a couple of simple ways to do that.
     """
+    import base64
+
     client = get_client()
     response = client.images.generate(
-        model="dall-e-3",
+        model="gpt-image-2",
         prompt=prompt,
         size=size,
-        quality="standard",
         n=1,
     )
-    return response.data[0].url
+    b64_data = response.data[0].b64_json
+    return base64.b64decode(b64_data)

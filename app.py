@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 
 import db
 import ai_content
+import image_host
 import meta_api
 from scheduler_worker import start_scheduler
 
@@ -52,21 +53,22 @@ with tab_create:
                     except Exception as e:
                         st.error(f"Caption generation failed: {e}")
 
-        image_prompt = st.text_input("Image description (optional, for DALL-E)", placeholder="e.g. a minimalist product shot of a water bottle on a wooden table")
-        if st.button("Generate image with DALL-E", use_container_width=True):
+        image_prompt = st.text_input("Image description (optional, for gpt-image-2)", placeholder="e.g. a minimalist product shot of a water bottle on a wooden table")
+        if st.button("Generate image with ChatGPT (gpt-image-2)", use_container_width=True):
             if not image_prompt.strip():
                 st.warning("Enter an image description first.")
             else:
                 with st.spinner("Generating image..."):
                     try:
-                        st.session_state.generated_image_url = ai_content.generate_image(image_prompt)
+                        image_bytes = ai_content.generate_image(image_prompt)
+                        st.session_state.generated_image_url = image_host.host_image(image_bytes)
                     except Exception as e:
                         st.error(f"Image generation failed: {e}")
 
     with col_right:
         st.subheader("2. Review & edit")
         caption = st.text_area("Caption", value=st.session_state.generated_caption, height=220, key="caption_editor")
-        image_url = st.text_input("Image URL (auto-filled from DALL-E, or paste your own public URL)",
+        image_url = st.text_input("Image URL (auto-filled after generation, or paste your own public URL)",
                                    value=st.session_state.generated_image_url, key="image_url_editor")
         if image_url:
             st.image(image_url, caption="Preview", use_container_width=True)
